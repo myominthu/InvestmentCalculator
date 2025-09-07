@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Investment Calculator Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        @media print {
+            body { font-size: 12px; }
+            .chart-container { height: 250px; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-calculator mr-3 text-blue-600"></i>
+                Ultimate Investment Calculator Suite
+            </h1>
+            <p class="text-gray-600">Complete investment planning and analysis tools</p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-lg shadow-lg mb-6">
+            <div class="flex border-b border-gray-200 overflow-x-auto">
+                <button class="tab-button active px-4 py-3 font-medium text-sm border-b-2 border-transparent hover:text-blue-600 transition-colors flex items-center whitespace-nowrap" onclick="switchTab('goal-planning')">
+                    <i class="fas fa-bullseye mr-2"></i>Goal Planning
+                </button>
+                <button class="tab-button px-4 py-3 font-medium text-sm border-b-2 border-transparent hover:text-blue-600 transition-colors flex items-center whitespace-nowrap" onclick="switchTab('sip-projection')">
+                    <i class="fas fa-chart-line mr-2"></i>SIP Projection
+                </button>
+                <button class="tab-button px-4 py-3 font-medium text-sm border-b-2 border-transparent hover:text-blue-600 transition-colors flex items-center whitespace-nowrap" onclick="switchTab('lump-sum')">
+                    <i class="fas fa-coins mr-2"></i>Lump Sum Growth
+                </button>
+                <button class="tab-button px-4 py-3 font-medium text-sm border-b-2 border-transparent hover:text-blue-600 transition-colors flex items-center whitespace-nowrap" onclick="switchTab('investment-tracker')">
+                    <i class="fas fa-table mr-2"></i>Investment Tracker
+                </button>
+            </div>
+
+            <!-- Goal Planning Mode -->
+            <div id="goal-planning" class="tab-content active p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Goal Planning Calculator</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Target Amount ($)</label>
+                                <input type="number" id="goal-target" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1000000" oninput="calculateGoalPlanning()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expected Annual Return (%)</label>
+                                <input type="number" id="goal-return" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="7" oninput="calculateGoalPlanning()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Period (Years)</label>
+                                <input type="number" id="goal-years" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10" oninput="calculateGoalPlanning()">
+                            </div>
+                        </div>
+                        
+                        <div id="goal-results" class="mt-6 space-y-3 hidden">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h3 class="font-semibold text-green-800 mb-2">Monthly Investment Required</h3>
+                                <p id="goal-monthly" class="text-2xl font-bold text-green-600"></p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h3 class="font-semibold text-blue-800 mb-2">Total Investment</h3>
+                                <p id="goal-total-investment" class="text-xl font-semibold text-blue-600"></p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h3 class="font-semibold text-purple-800 mb-2">Expected Returns</h3>
+                                <p id="goal-returns" class="text-xl font-semibold text-purple-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="chart-container">
+                            <canvas id="goalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIP Projection Mode -->
+            <div id="sip-projection" class="tab-content p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">SIP Projection Calculator</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Investment ($)</label>
+                                <input type="number" id="sip-monthly" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="500" oninput="calculateSipProjection()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expected Annual Return (%)</label>
+                                <input type="number" id="sip-return" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="7" oninput="calculateSipProjection()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Period (Years)</label>
+                                <input type="number" id="sip-years" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="15" oninput="calculateSipProjection()">
+                            </div>
+                        </div>
+                        
+                        <div id="sip-results" class="mt-6 space-y-3 hidden">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h3 class="font-semibold text-green-800 mb-2">Final Portfolio Value</h3>
+                                <p id="sip-final-value" class="text-2xl font-bold text-green-600"></p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h3 class="font-semibold text-blue-800 mb-2">Total Investment</h3>
+                                <p id="sip-total-investment" class="text-xl font-semibold text-blue-600"></p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h3 class="font-semibold text-purple-800 mb-2">Estimated Returns</h3>
+                                <p id="sip-returns" class="text-xl font-semibold text-purple-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="chart-container">
+                            <canvas id="sipChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lump Sum Growth Mode -->
+            <div id="lump-sum" class="tab-content p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Lump Sum Growth Calculator</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Initial Investment ($)</label>
+                                <input type="number" id="lump-initial" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="50000" oninput="calculateLumpSum()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expected Annual Return (%)</label>
+                                <input type="number" id="lump-return" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="7" oninput="calculateLumpSum()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Period (Years)</label>
+                                <input type="number" id="lump-years" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10" oninput="calculateLumpSum()">
+                            </div>
+                        </div>
+                        
+                        <div id="lump-results" class="mt-6 space-y-3 hidden">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h3 class="font-semibold text-green-800 mb-2">Final Value</h3>
+                                <p id="lump-final-value" class="text-2xl font-bold text-green-600"></p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h3 class="font-semibold text-blue-800 mb-2">Principal Investment</h3>
+                                <p id="lump-principal" class="text-xl font-semibold text-blue-600"></p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h3 class="font-semibold text-purple-800 mb-2">Compound Returns</h3>
+                                <p id="lump-returns" class="text-xl font-semibold text-purple-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="chart-container">
+                            <canvas id="lumpChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investment Tracker Mode -->
+            <div id="investment-tracker" class="tab-content p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Investment Tracker with Year-by-Year Analysis</h2>
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Starting Balance ($)</label>
+                                <input type="number" id="tracker-starting" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10000" oninput="calculateTracker()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Investment ($)</label>
+                                <input type="number" id="tracker-monthly" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="500" oninput="calculateTracker()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expected Annual Return (%)</label>
+                                <input type="number" id="tracker-return" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="7" oninput="calculateTracker()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Investment Period (Years)</label>
+                                <input type="number" id="tracker-years" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10" oninput="calculateTracker()">
+                            </div>
+                        </div>
+                        
+                        <div id="tracker-summary" class="mt-6 space-y-3 hidden">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h3 class="font-semibold text-green-800 mb-2">Total Balance</h3>
+                                <p id="tracker-total-balance" class="text-2xl font-bold text-green-600"></p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h3 class="font-semibold text-blue-800 mb-2">Total Contributions</h3>
+                                <p id="tracker-contributions" class="text-xl font-semibold text-blue-600"></p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h3 class="font-semibold text-purple-800 mb-2">Total Profit</h3>
+                                <p id="tracker-profit" class="text-xl font-semibold text-purple-600"></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="chart-container">
+                                <canvas id="trackerChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div id="tracker-table" class="hidden">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-800">Year-by-Year Breakdown</h3>
+                            <div class="overflow-x-auto bg-white rounded-lg border">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Balance</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contributions</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Earned</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tracker-table-body" class="bg-white divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let goalChart, sipChart, lumpChart, trackerChart;
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function createPieChart(canvasId, data, labels) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window[canvasId.replace('Chart', '') + 'ChartInstance']) {
+                window[canvasId.replace('Chart', '') + 'ChartInstance'].destroy();
+            }
+            
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#10b981',
+                            '#8b5cf6'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            window[canvasId.replace('Chart', '') + 'ChartInstance'] = chart;
+        }
+
+        function calculateGoalPlanning() {
+            const target = parseFloat(document.getElementById('goal-target').value);
+            const returnRate = parseFloat(document.getElementById('goal-return').value);
+            const years = parseInt(document.getElementById('goal-years').value);
+            
+            if (!target || !returnRate || !years) {
+                document.getElementById('goal-results').classList.add('hidden');
+                return;
+            }
+            
+            const monthlyReturn = returnRate / 100 / 12;
+            const totalMonths = years * 12;
+            
+            const monthlyInvestment = target * monthlyReturn / (Math.pow(1 + monthlyReturn, totalMonths) - 1);
+            const totalInvestment = monthlyInvestment * totalMonths;
+            const expectedReturns = target - totalInvestment;
+            
+            document.getElementById('goal-monthly').textContent = formatCurrency(monthlyInvestment);
+            document.getElementById('goal-total-investment').textContent = formatCurrency(totalInvestment);
+            document.getElementById('goal-returns').textContent = formatCurrency(expectedReturns);
+            
+            document.getElementById('goal-results').classList.remove('hidden');
+            
+            createPieChart('goalChart', [totalInvestment, expectedReturns], ['Total Investment', 'Expected Returns']);
+        }
+
+        function calculateSipProjection() {
+            const monthlyInvestment = parseFloat(document.getElementById('sip-monthly').value);
+            const returnRate = parseFloat(document.getElementById('sip-return').value);
+            const years = parseInt(document.getElementById('sip-years').value);
+            
+            if (!monthlyInvestment || !returnRate || !years) {
+                document.getElementById('sip-results').classList.add('hidden');
+                return;
+            }
+            
+            const monthlyReturn = returnRate / 100 / 12;
+            const totalMonths = years * 12;
+            
+            const finalValue = monthlyInvestment * ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn);
+            const totalInvestment = monthlyInvestment * totalMonths;
+            const returns = finalValue - totalInvestment;
+            
+            document.getElementById('sip-final-value').textContent = formatCurrency(finalValue);
+            document.getElementById('sip-total-investment').textContent = formatCurrency(totalInvestment);
+            document.getElementById('sip-returns').textContent = formatCurrency(returns);
+            
+            document.getElementById('sip-results').classList.remove('hidden');
+            
+            createPieChart('sipChart', [totalInvestment, returns], ['Total Investment', 'Estimated Returns']);
+        }
+
+        function calculateLumpSum() {
+            const initial = parseFloat(document.getElementById('lump-initial').value);
+            const returnRate = parseFloat(document.getElementById('lump-return').value);
+            const years = parseInt(document.getElementById('lump-years').value);
+            
+            if (!initial || !returnRate || !years) {
+                document.getElementById('lump-results').classList.add('hidden');
+                return;
+            }
+            
+            const finalValue = initial * Math.pow(1 + returnRate / 100, years);
+            const returns = finalValue - initial;
+            
+            document.getElementById('lump-final-value').textContent = formatCurrency(finalValue);
+            document.getElementById('lump-principal').textContent = formatCurrency(initial);
+            document.getElementById('lump-returns').textContent = formatCurrency(returns);
+            
+            document.getElementById('lump-results').classList.remove('hidden');
+            
+            createPieChart('lumpChart', [initial, returns], ['Principal Investment', 'Compound Returns']);
+        }
+
+        function calculateTracker() {
+            const startingBalance = parseFloat(document.getElementById('tracker-starting').value) || 0;
+            const monthlyInvestment = parseFloat(document.getElementById('tracker-monthly').value) || 0;
+            const returnRate = parseFloat(document.getElementById('tracker-return').value);
+            const years = parseInt(document.getElementById('tracker-years').value);
+            
+            if (!returnRate || !years) {
+                document.getElementById('tracker-summary').classList.add('hidden');
+                document.getElementById('tracker-table').classList.add('hidden');
+                return;
+            }
+            
+            const annualReturn = returnRate / 100;
+            let currentBalance = startingBalance;
+            const yearlyData = [];
+            
+            for (let year = 1; year <= years; year++) {
+                const startBalance = currentBalance;
+                const yearlyContributions = monthlyInvestment * 12;
+                
+                // Add monthly contributions throughout the year
+                for (let month = 1; month <= 12; month++) {
+                    currentBalance += monthlyInvestment;
+                    currentBalance *= (1 + annualReturn / 12);
+                }
+                
+                const interestEarned = currentBalance - startBalance - yearlyContributions;
+                
+                yearlyData.push({
+                    year: year,
+                    startBalance: startBalance,
+                    contributions: yearlyContributions,
+                    interestEarned: interestEarned,
+                    endBalance: currentBalance
+                });
+            }
+            
+            const totalContributions = startingBalance + (monthlyInvestment * years * 12);
+            const totalProfit = currentBalance - totalContributions;
+            
+            document.getElementById('tracker-total-balance').textContent = formatCurrency(currentBalance);
+            document.getElementById('tracker-contributions').textContent = formatCurrency(totalContributions);
+            document.getElementById('tracker-profit').textContent = formatCurrency(totalProfit);
+            
+            document.getElementById('tracker-summary').classList.remove('hidden');
+            
+            // Create table
+            const tableBody = document.getElementById('tracker-table-body');
+            tableBody.innerHTML = '';
+            
+            yearlyData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${data.year}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${formatCurrency(data.startBalance)}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${formatCurrency(data.contributions)}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${formatCurrency(data.interestEarned)}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">${formatCurrency(data.endBalance)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.getElementById('tracker-table').classList.remove('hidden');
+            
+            createPieChart('trackerChart', [totalContributions, totalProfit], ['Total Contributions', 'Total Profit']);
+        }
+
+        // Initialize with sample calculations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set sample values
+            document.getElementById('goal-target').value = '1000000';
+            document.getElementById('goal-return').value = '7';
+            document.getElementById('goal-years').value = '10';
+            calculateGoalPlanning();
+        });
+    </script>
+</body>
+</html>
